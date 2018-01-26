@@ -5,16 +5,36 @@
                 #include <iostream>   
                 #include <string>    
 	        #include <vector>
+                #include <pthread.h>
                 #include "base.h"
                 #include "imple.h"
                 #include "string_utils.h"
                 
+                #include "./smart_ptr/detail/spinlock.hpp"
                 using namespace sofa::pbrpc;
+
+                using namespace sofa::pbrpc::detail;
                 //#include "./base.h"
                
                 using namespace test;
 	        using namespace __model__;
+                
 
+
+                int g_test=0;
+                
+                spinlock LOCK;
+
+                void * add(void * temp)
+                {   
+                          
+                          int a=*(int*)(temp);
+                          LOCK.lock();
+                          g_test++;
+                          cout<<"thread:"<<pthread_self()<<"gtest:"<<g_test<<endl;
+                          LOCK.unlock();
+                          return NULL;
+                }
 
 
 
@@ -146,6 +166,31 @@
                   string oldstr("#f");         
                   string newstr("&&&&");
                   cout<<"replace str"<<StringUtils::replace(str_util1,oldstr,newstr)<<endl;
+                  
+                 
+
+
+                  #ifdef  __linux__
+                  
+                  pthread_t pid[6];
+
+                  for(auto i=0;i<6;i++)
+                  {
+                         pthread_create(&pid[i],NULL,add,&g_test);
+                  }
+
+
+                  for(auto i=0;i<6;i++)
+                  {
+                        pthread_join(pid[i],NULL);
+                  }
+
+                  #endif 
+
+
+
+
+
                   return 0;
                                 
         }
