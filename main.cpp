@@ -13,7 +13,7 @@
                 //#include "./base.h"
                
                 using namespace test;
-			    using namespace __model__;
+	        using namespace __model__;
 
 
 
@@ -21,24 +21,24 @@
 		
 				 
 
-				
-				int main(int argc, char const *argv[])
-				{
-
-           
-
-				/* code */
-				
-				// base * b=new base();
-				// if(b==NULL)
-				// {
-				// std::cout<<"new error"<<std::endl;
-				// return 1;
-				// }
+        	
+        	int main(int argc, char const *argv[])
+        	{
 
 
 
-				//std::cout<<"new success"<<std::endl;
+        	/* code */
+        	
+        	// base * b=new base();
+        	// if(b==NULL)
+        	// {
+        	// std::cout<<"new error"<<std::endl;
+        	// return 1;
+        	// }
+
+
+
+        	//std::cout<<"new success"<<std::endl;
 
                 string str("");
                 str+="wuyujie";
