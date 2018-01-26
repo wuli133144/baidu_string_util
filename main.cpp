@@ -4,46 +4,89 @@
 			
                 #include <iostream>   
                 #include <string>    
-	        #include <vector>
+	              #include <vector>
                 #include <pthread.h>
                 #include "base.h"
                 #include "imple.h"
                 #include "string_utils.h"
+                #include "shareable.h"
+                #include "guard.h"
+                #include "mutex.h"
+                #include "time_util.h"
+                #include "thread_pool.h"
+                #include "log.h"
+
+                //#include ""
+               
                 
                 #include "./smart_ptr/detail/spinlock.hpp"
                 using namespace sofa::pbrpc;
 
                 using namespace sofa::pbrpc::detail;
+                using namespace bgcc;
                 //#include "./base.h"
                
                 using namespace test;
-	        using namespace __model__;
+	              using namespace __model__;
                 
+                #define MAX_THREAD_NUM     10  
 
-
-                int g_test=0;
+                int g_test=0,i=0;
                 
                 spinlock LOCK;
+
+                typedef Guard<Mutex> scope_guard_t;
+                Mutex mutex;
+
+                //scope_guard_t Guard_dog(new Mutex());
 
                 void * add(void * temp)
                 {   
                           
                           int a=*(int*)(temp);
-                          LOCK.lock();
-                          g_test++;
-                          cout<<"thread:"<<pthread_self()<<"gtest:"<<g_test<<endl;
-                          LOCK.unlock();
+                          //LOCK.lock();
+                          //Guard_dog;
+                          //  scope_guard_t dog(new Mutex()); 
+                          //while(i<10000) {
+                              /* code */
+                             //g_test++;
+
+                          //   i++;
+                          mutex.lock();
+                          i++;
+                          mutex.unlock();
+
+                          cout<<"thread:"<<pthread_self()<<"i:"<<i<<endl;
+                          // LOCK.unlock();
+                          //}
+                         
+                         
                           return NULL;
                 }
 
+        
+        //测试运行函数机制
+         class  print_test_task: public Runnable
+         {
+             public:
+                  print_test_task()
+                  {}
+                  ~print_test_task()
+                  {}
+                  virtual int32_t operator()(void *parm=NULL){
+                         cout<<"hell worldxxxxxx wuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu"<<endl;
+                         return -1;
+                  }
+         };
 
 
-		
-				 
-
-        	
         	int main(int argc, char const *argv[])
         	{
+             
+
+
+
+              //log_open("bgcc.cfg");
 
 
 
@@ -70,6 +113,9 @@
                 {
                 	/* code */
                 	std::cout<<"yes "<<std::endl;
+                 
+                 //GCC_NOTICE(__LINE__,"find string %d");
+                //BGCC_NOTICE("bgcc.cfg");
                 }else
                 {
                 	 std::cout<<"no"<<std::endl;
@@ -115,12 +161,12 @@
                  cout<<"userinfo ref count:"<<user_ptr.use_count()<<endl;
                  
 
-                 shared_ptr<string> pstr=make_shared<string>(10,'a');
+                 shared_ptr<string> pstr=make_shared<string>(MAX_THREAD_NUM,'a');
 
                  //cout<<*pstr<<endl;
                  cout<<"make_shared count:"<<pstr.use_count()<<endl;
 
-                 shared_ptr<string>pstr_cp=make_shared<string>(10,'b');
+                 shared_ptr<string>pstr_cp=make_shared<string>(MAX_THREAD_NUM,'b');
 
                  cout<<"make_shared  copy count:"<<pstr_cp.use_count()<<endl;
                  
@@ -170,23 +216,39 @@
                  
 
 
-                  #ifdef  __linux__
+                  #ifndef  __linux__
                   
-                  pthread_t pid[6];
+                  pthread_t pid[MAX_THREAD_NUM];
 
-                  for(auto i=0;i<6;i++)
+                  for(auto i=0;i<MAX_THREAD_NUM;i++)
                   {
                          pthread_create(&pid[i],NULL,add,&g_test);
                   }
 
 
-                  for(auto i=0;i<6;i++)
+                  for(auto i=0;i<MAX_THREAD_NUM;i++)
                   {
                         pthread_join(pid[i],NULL);
                   }
 
                   #endif 
 
+                  
+                  ThreadPool pool;
+                  pool.init(MAX_THREAD_NUM);
+                  //BGCC_NOTICE("find string %d",__LINE__);
+                  for(int i=0;i<100;i++){
+
+                    pool.addTask(RunnableSharedPointer(new print_test_task()));
+                  }
+                  //BGCC_NOTICE("find string %d",__LINE__);
+                  //pool.addTask(new print_test_task());
+                  //pool.addTask(new print_test_task());
+                  //pool.addTask(new print_test_task());
+                    pool.join();
+                     
+
+                    //cout<<">>>>>>>>>>>>end() main>>>>>>>>>>>>>>"<<endl;
 
 
 
